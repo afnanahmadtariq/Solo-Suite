@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ClientService } from '../../core/services/client.service';
+import { PopupService } from '../../core/services/popup.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -113,6 +114,7 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ClientListComponent {
+  private readonly popupService = inject(PopupService);
   clientService = inject(ClientService);
   showAddModal = false;
   newClient = {
@@ -135,8 +137,15 @@ export class ClientListComponent {
     this.showAddModal = false;
   }
 
-  deleteClient(id: number) {
-    if (confirm('Are you sure you want to delete this client?')) {
+  async deleteClient(id: number) {
+    const confirmed = await this.popupService.confirm({
+      title: 'Delete Client',
+      message: 'Are you sure you want to delete this client? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (confirmed) {
       this.clientService.deleteClient(id);
     }
   }

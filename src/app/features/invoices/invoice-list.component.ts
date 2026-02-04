@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { InvoiceService } from '../../core/services/invoice.service';
+import { PopupService } from '../../core/services/popup.service';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 
@@ -121,6 +122,7 @@ import { DecimalPipe } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InvoiceListComponent {
+  private readonly popupService = inject(PopupService);
   invoiceService = inject(InvoiceService);
   showAddModal = false;
   newInvoice = {
@@ -147,8 +149,15 @@ export class InvoiceListComponent {
     this.invoiceService.updateInvoiceStatus(id, 'Paid');
   }
 
-  deleteInvoice(id: number) {
-    if (confirm('Are you sure you want to delete this invoice?')) {
+  async deleteInvoice(id: number) {
+    const confirmed = await this.popupService.confirm({
+      title: 'Delete Invoice',
+      message: 'Are you sure you want to delete this invoice? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (confirmed) {
       this.invoiceService.deleteInvoice(id);
     }
   }

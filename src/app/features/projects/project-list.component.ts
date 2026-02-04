@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ProjectService } from '../../core/services/project.service';
+import { PopupService } from '../../core/services/popup.service';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -106,6 +107,7 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectListComponent {
+  private readonly popupService = inject(PopupService);
   projectService = inject(ProjectService);
   showAddModal = false;
   newProject = {
@@ -128,8 +130,15 @@ export class ProjectListComponent {
     this.showAddModal = false;
   }
 
-  deleteProject(id: number) {
-    if (confirm('Are you sure you want to delete this project?')) {
+  async deleteProject(id: number) {
+    const confirmed = await this.popupService.confirm({
+      title: 'Delete Project',
+      message: 'Are you sure you want to delete this project? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (confirmed) {
       this.projectService.deleteProject(id);
     }
   }
