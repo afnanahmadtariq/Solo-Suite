@@ -1,9 +1,11 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { ApiService } from './api.service';
 
 export interface Project {
   id: number;
   name: string;
   client: string;
+  clientId?: number;
   status: 'Planning' | 'In Progress' | 'Completed';
   progress: number;
   dueDate: string;
@@ -13,12 +15,9 @@ export interface Project {
   providedIn: 'root'
 })
 export class ProjectService {
-  private projectsSignal = signal<Project[]>([
-    { id: 1, name: 'Website Redesign', client: 'Acme Corp', status: 'In Progress', progress: 65, dueDate: 'Dec 20' },
-    { id: 2, name: 'Mobile App MVP', client: 'TechStart', status: 'Planning', progress: 10, dueDate: 'Jan 15' },
-    { id: 3, name: 'Marketing Campaign', client: 'Design Co', status: 'Completed', progress: 100, dueDate: 'Nov 30' },
-    { id: 4, name: 'SEO Optimization', client: 'Local Shop', status: 'In Progress', progress: 45, dueDate: 'Dec 10' },
-  ]);
+  private api = inject(ApiService);
+  private projectsSignal = signal<Project[]>([]);
+  loading = signal(false);
 
   readonly projects = this.projectsSignal.asReadonly();
   
@@ -26,18 +25,44 @@ export class ProjectService {
     this.projectsSignal().filter(p => p.status === 'In Progress').length
   );
 
+  loadProjects() {
+    this.loading.set(true);
+    this.api.get<Project[]>('/projects').subscribe({
+      next: (projects) => {
+        this.projectsSignal.set(projects);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
   addProject(project: Omit<Project, 'id'>) {
-    const newProject = { ...project, id: Date.now() };
-    this.projectsSignal.update(projects => [...projects, newProject]);
+    this.api.post<Project>('/projects', project).subscribe({
+      next: (newProject) => {
+        this.projectsSignal.update(projects => [newProject, ...projects]);
+      },
+    });
   }
 
   updateProject(id: number, updatedProject: Partial<Project>) {
-    this.projectsSignal.update(projects => 
-      projects.map(p => p.id === id ? { ...p, ...updatedProject } : p)
-    );
+    this.api.put<Project>(`/projects/${id}`, updatedProject).subscribe({
+      next: (updated) => {
+        this.projectsSignal.update(projects => 
+          projects.map(p => p.id === id ? updated : p)
+        );
+      },
+    });
   }
 
   deleteProject(id: number) {
-    this.projectsSignal.update(projects => projects.filter(p => p.id !== id));
+    this.api.delete(`/projects/${id}`).subscribe({
+      next: () => {
+        this.projectsSignal.update(projects => projects.filter(p => p.id !== id));
+      },
+    });
+  }
+
+  clearData() {
+    this.projectsSignal.set([]);
   }
 }

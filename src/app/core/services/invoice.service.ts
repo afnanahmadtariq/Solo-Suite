@@ -1,9 +1,11 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { ApiService } from './api.service';
 
 export interface Invoice {
   id: number;
   number: string;
   client: string;
+  clientId?: number;
   date: string;
   amount: number;
   status: 'Paid' | 'Pending' | 'Overdue';
@@ -13,11 +15,9 @@ export interface Invoice {
   providedIn: 'root'
 })
 export class InvoiceService {
-  private invoicesSignal = signal<Invoice[]>([
-    { id: 1, number: 'INV-001', client: 'Acme Corp', date: 'Dec 01, 2025', amount: 1200.00, status: 'Paid' },
-    { id: 2, number: 'INV-002', client: 'TechStart', date: 'Dec 05, 2025', amount: 3500.00, status: 'Pending' },
-    { id: 3, number: 'INV-003', client: 'Design Co', date: 'Nov 20, 2025', amount: 850.00, status: 'Overdue' },
-  ]);
+  private api = inject(ApiService);
+  private invoicesSignal = signal<Invoice[]>([]);
+  loading = signal(false);
 
   readonly invoices = this.invoicesSignal.asReadonly();
 
@@ -37,18 +37,44 @@ export class InvoiceService {
     this.invoicesSignal().filter(i => i.status === 'Overdue').length
   );
 
+  loadInvoices() {
+    this.loading.set(true);
+    this.api.get<Invoice[]>('/invoices').subscribe({
+      next: (invoices) => {
+        this.invoicesSignal.set(invoices);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
   addInvoice(invoice: Omit<Invoice, 'id'>) {
-    const newInvoice = { ...invoice, id: Date.now() };
-    this.invoicesSignal.update(invoices => [...invoices, newInvoice]);
+    this.api.post<Invoice>('/invoices', invoice).subscribe({
+      next: (newInvoice) => {
+        this.invoicesSignal.update(invoices => [newInvoice, ...invoices]);
+      },
+    });
   }
 
   updateInvoiceStatus(id: number, status: Invoice['status']) {
-    this.invoicesSignal.update(invoices => 
-      invoices.map(i => i.id === id ? { ...i, status } : i)
-    );
+    this.api.patch<Invoice>(`/invoices/${id}/status`, { status }).subscribe({
+      next: (updated) => {
+        this.invoicesSignal.update(invoices => 
+          invoices.map(i => i.id === id ? updated : i)
+        );
+      },
+    });
   }
 
   deleteInvoice(id: number) {
-    this.invoicesSignal.update(invoices => invoices.filter(i => i.id !== id));
+    this.api.delete(`/invoices/${id}`).subscribe({
+      next: () => {
+        this.invoicesSignal.update(invoices => invoices.filter(i => i.id !== id));
+      },
+    });
+  }
+
+  clearData() {
+    this.invoicesSignal.set([]);
   }
 }

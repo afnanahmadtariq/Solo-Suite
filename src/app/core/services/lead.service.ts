@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { ApiService } from './api.service';
 
 export interface Lead {
   id: number;
@@ -14,12 +15,9 @@ export interface Lead {
   providedIn: 'root'
 })
 export class LeadService {
-  private leadsSignal = signal<Lead[]>([
-    { id: 1, title: 'E-commerce Platform', company: 'Global Retail Inc.', value: 5000, status: 'New', date: '2d ago', type: 'Web Dev' },
-    { id: 2, title: 'Logo Redesign', company: 'Startup X', value: 800, status: 'New', date: '4d ago', type: 'Design' },
-    { id: 3, title: 'SEO Audit', company: 'Local Shop', value: 1200, status: 'Contacted', date: '1w ago', type: 'Consulting' },
-    { id: 4, title: 'Corporate Site', company: 'Big Corp', value: 12000, status: 'Proposal Sent', date: '3d ago', type: 'Web Dev' },
-  ]);
+  private api = inject(ApiService);
+  private leadsSignal = signal<Lead[]>([]);
+  loading = signal(false);
 
   readonly leads = this.leadsSignal.asReadonly();
 
@@ -28,18 +26,44 @@ export class LeadService {
   readonly proposalLeads = computed(() => this.leadsSignal().filter(l => l.status === 'Proposal Sent'));
   readonly wonLeads = computed(() => this.leadsSignal().filter(l => l.status === 'Won'));
 
+  loadLeads() {
+    this.loading.set(true);
+    this.api.get<Lead[]>('/leads').subscribe({
+      next: (leads) => {
+        this.leadsSignal.set(leads);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
   addLead(lead: Omit<Lead, 'id' | 'date'>) {
-    const newLead = { ...lead, id: Date.now(), date: 'Just now' };
-    this.leadsSignal.update(leads => [...leads, newLead]);
+    this.api.post<Lead>('/leads', lead).subscribe({
+      next: (newLead) => {
+        this.leadsSignal.update(leads => [newLead, ...leads]);
+      },
+    });
   }
 
   updateLeadStatus(id: number, status: Lead['status']) {
-    this.leadsSignal.update(leads => 
-      leads.map(l => l.id === id ? { ...l, status } : l)
-    );
+    this.api.patch<Lead>(`/leads/${id}/status`, { status }).subscribe({
+      next: (updated) => {
+        this.leadsSignal.update(leads => 
+          leads.map(l => l.id === id ? updated : l)
+        );
+      },
+    });
   }
 
   deleteLead(id: number) {
-    this.leadsSignal.update(leads => leads.filter(l => l.id !== id));
+    this.api.delete(`/leads/${id}`).subscribe({
+      next: () => {
+        this.leadsSignal.update(leads => leads.filter(l => l.id !== id));
+      },
+    });
+  }
+
+  clearData() {
+    this.leadsSignal.set([]);
   }
 }

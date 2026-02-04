@@ -85,10 +85,10 @@ import { AuthService } from '../../core/services/auth.service';
         @if (!collapsed()) {
           <div class="flex items-center gap-3 p-2 mb-2">
             <div class="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center text-black font-bold text-sm flex-shrink-0">
-              AF
+              {{ userInitials }}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-white truncate">Afnan</p>
+              <p class="text-sm font-medium text-white truncate">{{ user()?.name }}</p>
               <p class="text-xs text-gray-500 truncate">Freelancer</p>
             </div>
           </div>
@@ -117,6 +117,13 @@ export class SidebarComponent {
 
   collapsed = input(false);
   toggle = output();
+
+  readonly user = this.authService.currentUser;
+
+  get userInitials(): string {
+    const name = this.user()?.name || '';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
 
   logout() {
     this.authService.logout();

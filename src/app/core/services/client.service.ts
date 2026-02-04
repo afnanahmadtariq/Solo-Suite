@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { ApiService } from './api.service';
 
 export interface Client {
   id: number;
@@ -13,11 +14,9 @@ export interface Client {
   providedIn: 'root'
 })
 export class ClientService {
-  private clientsSignal = signal<Client[]>([
-    { id: 1, name: 'Jane Cooper', company: 'Acme Corp', email: 'jane@acme.com', phone: '+1 555-0123', status: 'Active' },
-    { id: 2, name: 'Cody Fisher', company: 'TechStart', email: 'cody@techstart.io', phone: '+1 555-0124', status: 'Active' },
-    { id: 3, name: 'Esther Howard', company: 'Design Co', email: 'esther@design.co', phone: '+1 555-0125', status: 'Inactive' },
-  ]);
+  private api = inject(ApiService);
+  private clientsSignal = signal<Client[]>([]);
+  loading = signal(false);
 
   readonly clients = this.clientsSignal.asReadonly();
   
@@ -25,18 +24,44 @@ export class ClientService {
     this.clientsSignal().filter(c => c.status === 'Active').length
   );
 
+  loadClients() {
+    this.loading.set(true);
+    this.api.get<Client[]>('/clients').subscribe({
+      next: (clients) => {
+        this.clientsSignal.set(clients);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
+
   addClient(client: Omit<Client, 'id'>) {
-    const newClient = { ...client, id: Date.now() };
-    this.clientsSignal.update(clients => [...clients, newClient]);
+    this.api.post<Client>('/clients', client).subscribe({
+      next: (newClient) => {
+        this.clientsSignal.update(clients => [newClient, ...clients]);
+      },
+    });
   }
 
   updateClient(id: number, updatedClient: Partial<Client>) {
-    this.clientsSignal.update(clients => 
-      clients.map(c => c.id === id ? { ...c, ...updatedClient } : c)
-    );
+    this.api.put<Client>(`/clients/${id}`, updatedClient).subscribe({
+      next: (updated) => {
+        this.clientsSignal.update(clients => 
+          clients.map(c => c.id === id ? updated : c)
+        );
+      },
+    });
   }
 
   deleteClient(id: number) {
-    this.clientsSignal.update(clients => clients.filter(c => c.id !== id));
+    this.api.delete(`/clients/${id}`).subscribe({
+      next: () => {
+        this.clientsSignal.update(clients => clients.filter(c => c.id !== id));
+      },
+    });
+  }
+
+  clearData() {
+    this.clientsSignal.set([]);
   }
 }
