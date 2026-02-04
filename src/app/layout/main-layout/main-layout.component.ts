@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 
@@ -7,8 +7,12 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
   imports: [RouterOutlet, SidebarComponent],
   template: `
     <div class="flex h-screen bg-gray-950">
-      <app-sidebar class="w-64 hidden md:block" />
-      <main class="flex-1 overflow-y-auto p-8 bg-gray-900">
+      <app-sidebar 
+        class="hidden md:block flex-shrink-0" 
+        [collapsed]="sidebarCollapsed()" 
+        (toggle)="sidebarCollapsed.set(!sidebarCollapsed())" 
+      />
+      <main class="flex-1 overflow-y-auto p-8 bg-gray-900 scrollbar-hidden">
         <router-outlet />
       </main>
     </div>
@@ -16,4 +20,6 @@ import { SidebarComponent } from '../sidebar/sidebar.component';
   styles: ``,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class MainLayoutComponent {}
+export class MainLayoutComponent {
+  sidebarCollapsed = signal(false);
+}
