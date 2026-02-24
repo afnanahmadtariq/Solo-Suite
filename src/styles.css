@@ -55,6 +55,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ── Interactive cursor ───────────────────────────── */
+button,
+a,
+select,
+summary,
+[role="button"],
+[type="submit"],
+[type="reset"],
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
 /* ── Theme-aware utility classes ──────────────────── */
 .bg-app {
   background-color: var(--bg-app);
@@ -264,7 +283,6 @@ body {
   font-size: 0.875rem;
   border-radius: 0.5rem;
   border: none;
-  cursor: pointer;
   transition: all 0.2s;
   box-shadow: 0 2px 8px rgba(249, 115, 22, 0.25);
 }
@@ -297,7 +315,6 @@ body {
   font-size: 0.875rem;
   border-radius: 0.5rem;
   border: 1px solid var(--border-default);
-  cursor: pointer;
   transition: all 0.2s;
 }
 

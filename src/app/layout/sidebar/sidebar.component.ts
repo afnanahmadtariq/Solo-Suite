@@ -64,9 +64,8 @@ import { ThemeService } from '../../core/services/theme.service';
         </a>
       </nav>
 
-      <!-- Footer -->
-      <div class="p-2 border-t border-theme space-y-1">
-        <!-- Theme Toggle -->
+      <!-- Theme Toggle -->
+      <div class="p-2">
         <button
           (click)="themeService.toggle()"
           class="w-full flex items-center px-3 py-2 text-muted hover:text-heading hover:bg-raised rounded-lg transition-colors"
@@ -83,10 +82,13 @@ import { ThemeService } from '../../core/services/theme.service';
             <span class="ml-3 text-sm font-medium truncate">{{ themeService.theme() === 'dark' ? 'Light Mode' : 'Dark Mode' }}</span>
           }
         </button>
+      </div>
 
+      <!-- Footer -->
+      <div class="p-2 border-t border-theme">
         <!-- Profile -->
         <a routerLink="/profile" routerLinkActive="bg-raised"
-           class="flex items-center p-2 rounded-lg hover:bg-raised transition-colors cursor-pointer"
+           class="flex items-center p-2 rounded-lg hover:bg-raised transition-colors"
            [class.justify-center]="collapsed()" [attr.title]="collapsed() ? 'Profile' : null">
           <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-black font-bold text-xs flex-shrink-0">{{ userInitials }}</div>
           @if (!collapsed()) {
@@ -96,12 +98,14 @@ import { ThemeService } from '../../core/services/theme.service';
             </div>
           }
         </a>
+      </div>
 
-        <!-- Logout -->
+      <!-- Logout -->
+      <div class="p-2 border-t border-theme">
         <button
           (click)="logout()"
-          class="w-full flex items-center px-3 py-2 text-muted hover:text-heading hover:bg-raised rounded-lg transition-colors"
-          [class.justify-center]="collapsed()" [attr.title]="collapsed() ? 'Logout' : null"
+          class="w-full flex items-center justify-center px-3 py-2 text-muted hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+          [attr.title]="collapsed() ? 'Logout' : null"
         >
           <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
           @if (!collapsed()) { <span class="ml-3 text-sm font-medium truncate">Logout</span> }
