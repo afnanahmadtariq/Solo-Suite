@@ -1,12 +1,119 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import "tailwindcss";
+
+/* ── Theme Variables ──────────────────────────────── */
+:root {
+  /* Dark theme (default) */
+  --bg-app: #030712;
+  --bg-sidebar: #000000;
+  --bg-surface: #0d1117;
+  --bg-raised: #111827;
+  --bg-inset: #0a0a0a;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  --text-heading: #ffffff;
+  --text-body: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-subtle: #6b7280;
+  --text-faint: #4b5563;
+
+  --border-default: #1f2937;
+  --border-subtle: #111827;
+
+  --surface-hover: rgba(249, 115, 22, 0.03);
+  --input-bg: #0a0a0a;
+  --modal-bg: #111827;
+  --danger-zone-bg: #030712;
+}
+
+[data-theme="light"] {
+  --bg-app: #f3f4f6;
+  --bg-sidebar: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-raised: #f9fafb;
+  --bg-inset: #f3f4f6;
+  --bg-overlay: rgba(0, 0, 0, 0.4);
+
+  --text-heading: #111827;
+  --text-body: #374151;
+  --text-muted: #6b7280;
+  --text-subtle: #9ca3af;
+  --text-faint: #d1d5db;
+
+  --border-default: #e5e7eb;
+  --border-subtle: #f3f4f6;
+
+  --surface-hover: rgba(0, 0, 0, 0.02);
+  --input-bg: #f9fafb;
+  --modal-bg: #ffffff;
+  --danger-zone-bg: #fef2f2;
+}
 
 /* ── Typography ───────────────────────────────────── */
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Theme-aware utility classes ──────────────────── */
+.bg-app {
+  background-color: var(--bg-app);
+}
+
+.bg-sidebar {
+  background-color: var(--bg-sidebar);
+}
+
+.bg-surface {
+  background-color: var(--bg-surface);
+}
+
+.bg-raised {
+  background-color: var(--bg-raised);
+}
+
+.bg-inset {
+  background-color: var(--bg-inset);
+}
+
+.bg-overlay {
+  background-color: var(--bg-overlay);
+}
+
+.text-heading {
+  color: var(--text-heading);
+}
+
+.text-body {
+  color: var(--text-body);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-subtle {
+  color: var(--text-subtle);
+}
+
+.text-faint {
+  color: var(--text-faint);
+}
+
+.border-theme {
+  border-color: var(--border-default);
+}
+
+.border-subtle {
+  border-color: var(--border-subtle);
+}
+
+.divide-theme>*+* {
+  border-color: var(--border-default);
+}
+
+.divide-subtle>*+* {
+  border-color: var(--border-subtle);
 }
 
 /* ── Custom scrollbars ─────────────────────────────── */
@@ -42,7 +149,7 @@ body {
   display: none;
 }
 
-/* ── Modal backdrop animation ──────────────────────── */
+/* ── Modal animations ──────────────────────────────── */
 @keyframes fade-in {
   from {
     opacity: 0;
@@ -73,14 +180,14 @@ body {
   animation: slide-up 0.25s ease-out;
 }
 
-/* ── Form input styles ─────────────────────────────── */
+/* ── Form input ────────────────────────────────────── */
 .form-input {
   width: 100%;
   padding: 0.625rem 1rem;
-  background: #0a0a0a;
-  border: 1px solid #1f2937;
+  background: var(--input-bg);
+  border: 1px solid var(--border-default);
   border-radius: 0.5rem;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 0.875rem;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
@@ -92,7 +199,7 @@ body {
 }
 
 .form-input::placeholder {
-  color: #4b5563;
+  color: var(--text-faint);
 }
 
 .form-input.ng-invalid.ng-touched {
@@ -100,13 +207,14 @@ body {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
+/* ── Form select ───────────────────────────────────── */
 .form-select {
   width: 100%;
   padding: 0.625rem 1rem;
-  background: #0a0a0a;
-  border: 1px solid #1f2937;
+  background: var(--input-bg);
+  border: 1px solid var(--border-default);
   border-radius: 0.5rem;
-  color: #fff;
+  color: var(--text-heading);
   font-size: 0.875rem;
   transition: border-color 0.2s, box-shadow 0.2s;
   appearance: auto;
@@ -123,7 +231,7 @@ body {
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
-/* ── Validation error text ─────────────────────────── */
+/* ── Validation error ──────────────────────────────── */
 .field-error {
   display: flex;
   align-items: center;
@@ -138,7 +246,7 @@ body {
   display: block;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #9ca3af;
+  color: var(--text-muted);
   margin-bottom: 0.5rem;
   letter-spacing: 0.01em;
 }
@@ -183,51 +291,55 @@ body {
   align-items: center;
   justify-content: center;
   padding: 0.625rem 1.5rem;
-  background: #1f2937;
-  color: #d1d5db;
+  background: var(--bg-raised);
+  color: var(--text-body);
   font-weight: 500;
   font-size: 0.875rem;
   border-radius: 0.5rem;
-  border: 1px solid #374151;
+  border: 1px solid var(--border-default);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background: #374151;
-  color: #fff;
+  background: var(--bg-inset);
+  color: var(--text-heading);
 }
 
-/* ── Card styles ───────────────────────────────────── */
+/* ── Card ──────────────────────────────────────────── */
 .card {
-  background: linear-gradient(145deg, #111827 0%, #0d1117 100%);
-  border: 1px solid #1f2937;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 .card:hover {
-  border-color: #374151;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-default);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
 }
 
-/* ── Table styles ──────────────────────────────────── */
+[data-theme="light"] .card:hover {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* ── Table ─────────────────────────────────────────── */
 .table-container {
-  background: linear-gradient(145deg, #111827 0%, #0d1117 100%);
-  border: 1px solid #1f2937;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
   border-radius: 0.75rem;
   overflow: hidden;
 }
 
 .table-header {
-  background: #030712;
+  background: var(--bg-inset);
 }
 
 .table-row:hover {
-  background: rgba(249, 115, 22, 0.03);
+  background: var(--surface-hover);
 }
 
-/* ── Status badge ──────────────────────────────────── */
+/* ── Badge ─────────────────────────────────────────── */
 .badge {
   display: inline-flex;
   align-items: center;
