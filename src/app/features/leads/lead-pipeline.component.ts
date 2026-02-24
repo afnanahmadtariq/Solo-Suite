@@ -33,10 +33,10 @@ import { DecimalPipe } from '@angular/common';
       </div>
 
       @if (viewMode() === 'pipeline') {
-        <div class="flex-1 overflow-x-auto pb-4 scrollbar-hidden">
-          <div class="flex gap-5 min-w-max">
+        <div class="flex-1 overflow-x-auto pb-2">
+          <div class="flex gap-5 h-full">
             @for (col of columns; track col.key) {
-              <div class="w-80 card p-4">
+              <div class="flex-1 min-w-[250px] card p-4">
                 <div class="flex justify-between items-center mb-4">
                   <h3 class="font-semibold text-heading text-sm">{{ col.title }}</h3>
                   <span [class]="col.badgeClass">{{ getLeadsByStatus(col.key).length }}</span>
