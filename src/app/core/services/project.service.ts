@@ -39,11 +39,12 @@ export class ProjectService {
   }
 
   addProject(project: Omit<Project, 'id'>) {
+    const payload = { ...project, clientId: Number(project.clientId), progress: Number(project.progress) };
     const tempId = this.nextTempId--;
-    const optimistic = { ...project, id: tempId } as Project;
+    const optimistic = { ...payload, id: tempId } as Project;
     this.projectsSignal.update(projects => [optimistic, ...projects]);
 
-    this.api.post<Project>('/projects', project).subscribe({
+    this.api.post<Project>('/projects', payload).subscribe({
       next: (serverProject) => {
         this.projectsSignal.update(projects =>
           projects.map(p => p.id === tempId ? serverProject : p)
@@ -56,12 +57,17 @@ export class ProjectService {
   }
 
   updateProject(id: number, updatedProject: Partial<Project>) {
+    const payload = {
+      ...updatedProject,
+      ...(updatedProject.clientId != null && { clientId: Number(updatedProject.clientId) }),
+      ...(updatedProject.progress != null && { progress: Number(updatedProject.progress) }),
+    };
     const previous = this.projectsSignal().find(p => p.id === id);
     this.projectsSignal.update(projects =>
-      projects.map(p => p.id === id ? { ...p, ...updatedProject } : p)
+      projects.map(p => p.id === id ? { ...p, ...payload } : p)
     );
 
-    this.api.put<Project>(`/projects/${id}`, updatedProject).subscribe({
+    this.api.put<Project>(`/projects/${id}`, payload).subscribe({
       next: (serverProject) => {
         this.projectsSignal.update(projects =>
           projects.map(p => p.id === id ? serverProject : p)

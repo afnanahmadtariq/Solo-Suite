@@ -71,7 +71,7 @@ import { PopupService } from '../../core/services/popup.service';
             <h3 class="text-heading font-semibold text-sm">Delete Account</h3>
             <p class="text-xs text-subtle mt-1 max-w-md leading-relaxed">Once you delete your account, there is no going back. All data will be permanently removed.</p>
           </div>
-          <button (click)="onDeleteAccount()" class="px-5 py-2.5 bg-transparent text-red-400 font-semibold text-sm rounded-lg border border-red-500/30 hover:bg-red-500 hover:text-white hover:border-red-500 transition-all flex-shrink-0">Delete Account</button>
+          <button (click)="onDeleteAccount()" class="px-5 py-2.5 bg-transparent text-red-400 font-semibold text-sm rounded-lg border border-red-500/30 hover:bg-red-500 hover:text-white active:bg-red-600 active:scale-95 hover:border-red-500 transition-all flex-shrink-0">Delete Account</button>
         </div>
       </div>
     </div>

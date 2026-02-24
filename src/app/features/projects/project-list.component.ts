@@ -27,7 +27,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
               <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-orange-500/20">{{ project.name.charAt(0) }}</div>
               <span [class]="getStatusClass(project.status)">{{ project.status }}</span>
             </div>
-            <h3 class="text-lg font-bold text-heading mb-0.5 group-hover:text-orange-400 transition-colors">{{ project.name }}</h3>
+            <h3 class="text-lg font-bold text-heading mb-0.5 group-hover:text-orange-400 active:text-orange-500 transition-colors">{{ project.name }}</h3>
             <p class="text-xs text-subtle mb-4">{{ project.client }}</p>
             <div class="mb-4">
               <div class="flex justify-between text-xs text-subtle mb-1.5">
@@ -44,8 +44,8 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
                 <span>{{ project.dueDate }}</span>
               </div>
               <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button (click)="openEditModal(project)" class="p-1.5 text-muted hover:text-orange-400 hover:bg-orange-500/10 rounded-md transition-all" aria-label="Edit project"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                <button (click)="deleteProject(project.id)" class="p-1.5 text-muted hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all" aria-label="Delete project"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                <button (click)="openEditModal(project)" class="p-1.5 text-muted hover:text-orange-400 active:text-orange-500 hover:bg-orange-500/10 active:bg-orange-500/20 active:scale-95 rounded-md transition-all" aria-label="Edit project"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                <button (click)="deleteProject(project.id)" class="p-1.5 text-muted hover:text-red-400 active:text-red-500 hover:bg-red-500/10 active:bg-red-500/20 active:scale-95 rounded-md transition-all" aria-label="Delete project"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
               </div>
             </div>
           </div>

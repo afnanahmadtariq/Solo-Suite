@@ -51,11 +51,16 @@ export class InvoiceService {
   }
 
   addInvoice(invoice: Omit<Invoice, 'id'>) {
+    const payload = {
+      ...invoice,
+      ...(invoice.clientId != null && { clientId: Number(invoice.clientId) }),
+      ...(invoice.amount != null && { amount: Number(invoice.amount) }),
+    };
     const tempId = this.nextTempId--;
-    const optimistic = { ...invoice, id: tempId } as Invoice;
+    const optimistic = { ...payload, id: tempId } as Invoice;
     this.invoicesSignal.update(invoices => [optimistic, ...invoices]);
 
-    this.api.post<Invoice>('/invoices', invoice).subscribe({
+    this.api.post<Invoice>('/invoices', payload).subscribe({
       next: (serverInvoice) => {
         this.invoicesSignal.update(invoices =>
           invoices.map(i => i.id === tempId ? serverInvoice : i)
@@ -68,12 +73,17 @@ export class InvoiceService {
   }
 
   updateInvoice(id: number, updatedInvoice: Partial<Invoice>) {
+    const payload = {
+      ...updatedInvoice,
+      ...(updatedInvoice.clientId != null && { clientId: Number(updatedInvoice.clientId) }),
+      ...(updatedInvoice.amount != null && { amount: Number(updatedInvoice.amount) }),
+    };
     const previous = this.invoicesSignal().find(i => i.id === id);
     this.invoicesSignal.update(invoices =>
-      invoices.map(i => i.id === id ? { ...i, ...updatedInvoice } : i)
+      invoices.map(i => i.id === id ? { ...i, ...payload } : i)
     );
 
-    this.api.put<Invoice>(`/invoices/${id}`, updatedInvoice).subscribe({
+    this.api.put<Invoice>(`/invoices/${id}`, payload).subscribe({
       next: (serverInvoice) => {
         this.invoicesSignal.update(invoices =>
           invoices.map(i => i.id === id ? serverInvoice : i)
