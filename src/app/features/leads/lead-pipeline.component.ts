@@ -3,10 +3,11 @@ import { LeadService, Lead } from '../../core/services/lead.service';
 import { PopupService } from '../../core/services/popup.service';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
+import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-lead-pipeline',
-  imports: [ReactiveFormsModule, DecimalPipe],
+  imports: [ReactiveFormsModule, DecimalPipe, DragDropModule],
   template: `
     <div class="space-y-6 h-full flex flex-col">
       <div class="flex justify-between items-center">
@@ -34,16 +35,26 @@ import { DecimalPipe } from '@angular/common';
 
       @if (viewMode() === 'pipeline') {
         <div class="flex-1 overflow-x-auto pb-2">
-          <div class="flex gap-5 h-full">
+          <div class="flex gap-5 h-full" cdkDropListGroup>
             @for (col of columns; track col.key) {
-              <div class="flex-1 min-w-[250px] card p-4">
+              <div class="flex-1 min-w-[250px] card p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-4">
                   <h3 class="font-semibold text-heading text-sm">{{ col.title }}</h3>
                   <span [class]="col.badgeClass">{{ getLeadsByStatus(col.key).length }}</span>
                 </div>
-                <div class="space-y-3">
+                <div 
+                  class="space-y-3 flex-1 min-h-[150px] rounded-lg"
+                  cdkDropList
+                  [id]="col.key"
+                  [cdkDropListData]="getLeadsByStatus(col.key)"
+                  (cdkDropListDropped)="onDrop($event)"
+                >
                   @for (lead of getLeadsByStatus(col.key); track lead.id) {
-                    <div class="bg-inset p-4 rounded-lg border border-theme transition-all group" [class.hover:border-emerald-500/40]="col.key === 'Won'" [class.hover:border-sky-500/40]="col.key === 'New'" [class.hover:border-amber-500/40]="col.key === 'Contacted'" [class.hover:border-violet-500/40]="col.key === 'Proposal Sent'">
+                    <div 
+                      cdkDrag 
+                      [cdkDragData]="lead"
+                      class="bg-inset p-4 rounded-lg border border-theme transition-all group cursor-grab active:cursor-grabbing hover:shadow-lg touch-action-none" 
+                      [class.hover:border-emerald-500/40]="col.key === 'Won'" [class.hover:border-sky-500/40]="col.key === 'New'" [class.hover:border-amber-500/40]="col.key === 'Contacted'" [class.hover:border-violet-500/40]="col.key === 'Proposal Sent'">
                       <div class="flex justify-between items-start mb-2">
                         <span [class]="col.badgeClass + ' text-[10px]'">{{ lead.type }}</span>
                         <span class="text-[10px] text-faint">{{ lead.date }}</span>
@@ -212,6 +223,16 @@ export class LeadPipelineComponent {
     this.closeModal();
   }
   updateStatus(id: number, status: Lead['status']) { this.leadService.updateLeadStatus(id, status); }
+
+  onDrop(event: CdkDragDrop<Lead[]>) {
+    // Only handle cross-column drops since we aren't saving intra-column ordering
+    if (event.previousContainer !== event.container) {
+      const movedLead = event.item.data as Lead;
+      const targetStatus = event.container.id as Lead['status'];
+      this.updateStatus(movedLead.id, targetStatus);
+    }
+  }
+
   async deleteLead(id: number) {
     if (await this.popupService.confirm({ title: 'Delete Lead', message: 'Are you sure you want to delete this lead?', confirmText: 'Delete', cancelText: 'Cancel', type: 'danger' }))
       this.leadService.deleteLead(id);
