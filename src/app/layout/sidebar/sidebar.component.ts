@@ -83,19 +83,24 @@ import { AuthService } from '../../core/services/auth.service';
       <!-- User Section -->
       <div class="p-2 border-t border-gray-800">
         @if (!collapsed()) {
-          <div class="flex items-center gap-3 p-2 mb-2">
+          <a routerLink="/profile" routerLinkActive="bg-gray-900" class="flex items-center gap-3 p-2 mb-2 rounded-lg hover:bg-gray-900 transition-colors cursor-pointer block">
             <div class="w-9 h-9 rounded-full bg-orange-500 flex items-center justify-center text-black font-bold text-sm flex-shrink-0">
               {{ userInitials }}
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-white truncate">{{ user()?.name }}</p>
-              <p class="text-xs text-gray-500 truncate">Freelancer</p>
+              <p class="text-sm font-medium text-white truncate group-hover:text-orange-500 transition-colors">{{ user()?.name }}</p>
+              <p class="text-xs text-gray-500 truncate">View Profile</p>
             </div>
-          </div>
+          </a>
           <button (click)="logout()" class="w-full px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-gray-900 rounded-lg transition-colors">
             Logout
           </button>
         } @else {
+          <a routerLink="/profile" routerLinkActive="bg-gray-900" class="w-full p-2 mb-2 hover:bg-gray-900 rounded-lg transition-colors flex items-center justify-center cursor-pointer block" title="Profile">
+            <div class="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center text-black font-bold text-sm flex-shrink-0">
+              {{ userInitials }}
+            </div>
+          </a>
           <button 
             (click)="logout()" 
             class="w-full p-2 text-gray-400 hover:text-white hover:bg-gray-900 rounded-lg transition-colors flex items-center justify-center"

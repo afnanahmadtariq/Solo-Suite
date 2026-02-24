@@ -29,7 +29,7 @@ export class AuthService {
   private projectService = inject(ProjectService);
   private invoiceService = inject(InvoiceService);
   private leadService = inject(LeadService);
-  
+
   currentUser = signal<User | null>(null);
   loading = signal(false);
   error = signal<string | null>(null);
@@ -72,7 +72,7 @@ export class AuthService {
 
   login(email: string, password: string) {
     if (!isPlatformBrowser(this.platformId)) return;
-    
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -93,7 +93,7 @@ export class AuthService {
 
   register(name: string, email: string, password: string) {
     if (!isPlatformBrowser(this.platformId)) return;
-    
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -107,6 +107,42 @@ export class AuthService {
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Registration failed');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  updateProfile(name: string, email: string) {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.api.put<User>('/auth/me', { name, email }).subscribe({
+      next: (user) => {
+        this.currentUser.set(user);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Update failed');
+        this.loading.set(false);
+      },
+    });
+  }
+
+  deleteProfile() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.api.delete('/auth/me').subscribe({
+      next: () => {
+        this.logout();
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Deletion failed');
         this.loading.set(false);
       },
     });

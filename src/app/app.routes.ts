@@ -39,6 +39,10 @@ export const routes: Routes = [
         path: 'invoices',
         loadComponent: () => import('./features/invoices/invoice-list.component').then(m => m.InvoiceListComponent),
       },
+      {
+        path: 'profile',
+        loadComponent: () => import('./features/profile/profile').then(m => m.Profile),
+      },
     ],
   },
 ];
