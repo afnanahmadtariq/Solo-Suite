@@ -115,6 +115,8 @@ export class AuthService {
   updateProfile(name: string, email: string) {
     if (!isPlatformBrowser(this.platformId)) return;
 
+    const previousUser = this.currentUser();
+    this.currentUser.set(previousUser ? { ...previousUser, name, email } : null);
     this.loading.set(true);
     this.error.set(null);
 
@@ -124,6 +126,7 @@ export class AuthService {
         this.loading.set(false);
       },
       error: (err) => {
+        this.currentUser.set(previousUser);
         this.error.set(err.error?.error || 'Update failed');
         this.loading.set(false);
       },

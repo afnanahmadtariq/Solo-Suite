@@ -1,20 +1,20 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ProjectService, Project } from '../../core/services/project.service';
 import { ClientService } from '../../core/services/client.service';
 import { PopupService } from '../../core/services/popup.service';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-project-list',
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   template: `
     <div class="space-y-6">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-3xl font-bold text-white">Projects</h2>
-          <p class="text-gray-400 mt-1">Manage and track your active projects</p>
+          <h2 class="text-3xl font-extrabold text-white tracking-tight">Projects</h2>
+          <p class="text-gray-500 mt-1 text-sm">Manage and track your active projects</p>
         </div>
-        <button (click)="openAddModal()" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+        <button (click)="openAddModal()" class="btn-primary">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
@@ -22,99 +22,114 @@ import { FormsModule } from '@angular/forms';
         </button>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         @for (project of projectService.projects(); track project.id) {
-          <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 p-6 hover:border-orange-500 transition-all">
+          <div class="card p-6 hover:border-orange-500/40 group">
             <div class="flex justify-between items-start mb-4">
-              <div class="h-14 w-14 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+              <div class="h-12 w-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-orange-500/20">
                 {{ project.name.charAt(0) }}
               </div>
               <span [class]="getStatusClass(project.status)">
                 {{ project.status }}
               </span>
             </div>
-            
-            <h3 class="text-xl font-bold text-white mb-1">{{ project.name }}</h3>
-            <p class="text-sm text-gray-400 mb-4">{{ project.client }}</p>
-            
+
+            <h3 class="text-lg font-bold text-white mb-0.5 group-hover:text-orange-400 transition-colors">{{ project.name }}</h3>
+            <p class="text-xs text-gray-500 mb-4">{{ project.client }}</p>
+
             <div class="mb-4">
-              <div class="flex justify-between text-xs text-gray-400 mb-2">
+              <div class="flex justify-between text-xs text-gray-500 mb-1.5">
                 <span>Progress</span>
-                <span class="font-semibold">{{ project.progress }}%</span>
+                <span class="font-semibold text-gray-300">{{ project.progress }}%</span>
               </div>
-              <div class="w-full bg-gray-900 rounded-full h-2.5 border border-gray-700">
-                <div class="bg-gradient-to-r from-orange-500 to-orange-600 h-full rounded-full transition-all duration-500" [style.width.%]="project.progress"></div>
+              <div class="w-full bg-gray-800 rounded-full h-1.5 overflow-hidden">
+                <div
+                  class="h-full rounded-full transition-all duration-500"
+                  [class]="project.progress === 100 ? 'bg-emerald-500' : 'bg-gradient-to-r from-orange-500 to-amber-500'"
+                  [style.width.%]="project.progress">
+                </div>
               </div>
             </div>
 
-            <div class="flex justify-between items-center pt-4 border-t border-gray-700">
-              <div class="flex items-center gap-2 text-gray-400 text-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex justify-between items-center pt-3 border-t border-gray-800">
+              <div class="flex items-center gap-1.5 text-gray-500 text-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                 </svg>
                 <span>{{ project.dueDate }}</span>
               </div>
-              <div class="flex gap-2">
-                <button (click)="openEditModal(project)" class="text-orange-400 hover:text-orange-300" aria-label="Edit project">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="openEditModal(project)" class="p-1.5 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-md transition-all" aria-label="Edit project">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                   </svg>
                 </button>
-                <button (click)="deleteProject(project.id)" class="text-red-400 hover:text-red-300" aria-label="Delete project">
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button (click)="deleteProject(project.id)" class="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-md transition-all" aria-label="Delete project">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                   </svg>
                 </button>
               </div>
             </div>
           </div>
+        } @empty {
+          <div class="col-span-full py-16 text-center text-gray-500 text-sm">
+            No projects yet. Click "New Project" to get started.
+          </div>
         }
       </div>
     </div>
 
     <!-- Add/Edit Project Modal -->
-    @if (showModal) {
-      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showModal = false">
-        <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700" (click)="$event.stopPropagation()">
-          <h3 class="text-2xl font-bold text-white mb-6">{{ editingProjectId ? 'Edit Project' : 'Add New Project' }}</h3>
-          <form (submit)="saveProject(); $event.preventDefault()" class="space-y-4">
+    @if (showModal()) {
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
+        <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full border border-gray-800 shadow-2xl modal-panel" (click)="$event.stopPropagation()">
+          <h3 class="text-xl font-bold text-white mb-6">{{ editingProjectId() ? 'Edit Project' : 'Add New Project' }}</h3>
+          <form [formGroup]="form" (ngSubmit)="saveProject()" class="space-y-5">
             <div>
-              <label for="project-name" class="block text-sm font-medium text-gray-300 mb-2">Project Name</label>
-              <input [(ngModel)]="formProject.name" name="name" id="project-name" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-name" class="form-label">Project Name *</label>
+              <input formControlName="name" id="project-name" type="text" class="form-input" placeholder="Website Redesign">
+              @if (form.get('name')?.touched && form.get('name')?.errors?.['required']) {
+                <p class="field-error">Project name is required</p>
+              }
             </div>
             <div>
-              <label for="project-client" class="block text-sm font-medium text-gray-300 mb-2">Client</label>
-              <select [(ngModel)]="formProject.clientId" name="clientId" id="project-client" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
-                <option [ngValue]="0" disabled>Select a client</option>
+              <label for="project-client" class="form-label">Client *</label>
+              <select formControlName="clientId" id="project-client" class="form-select">
+                <option [value]="0" disabled>Select a client</option>
                 @for (client of clientService.clients(); track client.id) {
-                  <option [ngValue]="client.id">{{ client.name }}</option>
+                  <option [value]="client.id">{{ client.name }}</option>
                 }
               </select>
+              @if (form.get('clientId')?.touched && form.get('clientId')?.errors?.['min']) {
+                <p class="field-error">Please select a client</p>
+              }
             </div>
             <div>
-              <label for="project-dueDate" class="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
-              <input [(ngModel)]="formProject.dueDate" name="dueDate" id="project-dueDate" type="date" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-dueDate" class="form-label">Due Date *</label>
+              <input formControlName="dueDate" id="project-dueDate" type="date" class="form-input">
+              @if (form.get('dueDate')?.touched && form.get('dueDate')?.errors?.['required']) {
+                <p class="field-error">Due date is required</p>
+              }
             </div>
             <div>
-              <label for="project-status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select [(ngModel)]="formProject.status" name="status" id="project-status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-status" class="form-label">Status</label>
+              <select formControlName="status" id="project-status" class="form-select">
                 <option value="Planning">Planning</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>
-            @if (editingProjectId) {
+            @if (editingProjectId()) {
               <div>
-                <label for="project-progress" class="block text-sm font-medium text-gray-300 mb-2">Progress ({{ formProject.progress }}%)</label>
-                <input [(ngModel)]="formProject.progress" name="progress" id="project-progress" type="range" min="0" max="100" step="5" class="w-full accent-orange-500">
+                <label for="project-progress" class="form-label">Progress ({{ form.get('progress')?.value }}%)</label>
+                <input formControlName="progress" id="project-progress" type="range" min="0" max="100" step="5" class="w-full accent-orange-500">
               </div>
             }
-            <div class="flex gap-3 mt-6">
-              <button type="button" (click)="showModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="flex-1 px-4 py-2 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-                {{ editingProjectId ? 'Save Changes' : 'Add Project' }}
+            <div class="flex gap-3 pt-2">
+              <button type="button" (click)="closeModal()" class="btn-secondary flex-1">Cancel</button>
+              <button type="submit" [disabled]="form.invalid" class="btn-primary flex-1">
+                {{ editingProjectId() ? 'Save Changes' : 'Add Project' }}
               </button>
             </div>
           </form>
@@ -127,54 +142,56 @@ import { FormsModule } from '@angular/forms';
 })
 export class ProjectListComponent {
   private readonly popupService = inject(PopupService);
+  private readonly fb = inject(FormBuilder);
   projectService = inject(ProjectService);
   clientService = inject(ClientService);
-  showModal = false;
-  editingProjectId: number | null = null;
-  formProject = {
-    name: '',
-    clientId: 0,
-    status: 'Planning' as 'Planning' | 'In Progress' | 'Completed',
-    progress: 0,
-    dueDate: ''
-  };
 
-  private resetForm() {
-    this.formProject = {
-      name: '',
-      clientId: 0,
-      status: 'Planning',
-      progress: 0,
-      dueDate: ''
-    };
-    this.editingProjectId = null;
-  }
+  showModal = signal(false);
+  editingProjectId = signal<number | null>(null);
+
+  form = this.fb.nonNullable.group({
+    name: ['', [Validators.required]],
+    clientId: [0, [Validators.required, Validators.min(1)]],
+    status: ['Planning' as 'Planning' | 'In Progress' | 'Completed'],
+    progress: [0],
+    dueDate: ['', [Validators.required]],
+  });
 
   openAddModal() {
-    this.resetForm();
-    this.showModal = true;
+    this.editingProjectId.set(null);
+    this.form.reset({ name: '', clientId: 0, status: 'Planning', progress: 0, dueDate: '' });
+    this.showModal.set(true);
   }
 
   openEditModal(project: Project) {
-    this.editingProjectId = project.id;
-    this.formProject = {
+    this.editingProjectId.set(project.id);
+    this.form.patchValue({
       name: project.name,
       clientId: project.clientId ?? 0,
       status: project.status,
       progress: project.progress,
       dueDate: project.dueDate,
-    };
-    this.showModal = true;
+    });
+    this.showModal.set(true);
+  }
+
+  closeModal() {
+    this.showModal.set(false);
   }
 
   saveProject() {
-    if (this.editingProjectId) {
-      this.projectService.updateProject(this.editingProjectId, this.formProject);
-    } else {
-      this.projectService.addProject(this.formProject as any);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
-    this.resetForm();
-    this.showModal = false;
+    const value = this.form.getRawValue();
+    const id = this.editingProjectId();
+    if (id) {
+      this.projectService.updateProject(id, value);
+    } else {
+      this.projectService.addProject(value as any);
+    }
+    this.closeModal();
   }
 
   async deleteProject(id: number) {
@@ -192,10 +209,10 @@ export class ProjectListComponent {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'In Progress': return 'px-3 py-1 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-400 border border-blue-500/30';
-      case 'Completed': return 'px-3 py-1 text-xs font-semibold rounded-full bg-green-500/20 text-green-400 border border-green-500/30';
-      case 'Planning': return 'px-3 py-1 text-xs font-semibold rounded-full bg-yellow-500/20 text-yellow-400 border border-yellow-500/30';
-      default: return 'px-3 py-1 text-xs font-semibold rounded-full bg-gray-500/20 text-gray-400 border border-gray-500/30';
+      case 'In Progress': return 'badge bg-sky-500/15 text-sky-400 ring-1 ring-sky-500/30';
+      case 'Completed': return 'badge bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30';
+      case 'Planning': return 'badge bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30';
+      default: return 'badge bg-gray-500/15 text-gray-400 ring-1 ring-gray-500/30';
     }
   }
 }

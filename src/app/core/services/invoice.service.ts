@@ -37,6 +37,8 @@ export class InvoiceService {
     this.invoicesSignal().filter(i => i.status === 'Overdue').length
   );
 
+  private nextTempId = -1;
+
   loadInvoices() {
     this.loading.set(true);
     this.api.get<Invoice[]>('/invoices').subscribe({
@@ -49,37 +51,73 @@ export class InvoiceService {
   }
 
   addInvoice(invoice: Omit<Invoice, 'id'>) {
+    const tempId = this.nextTempId--;
+    const optimistic = { ...invoice, id: tempId } as Invoice;
+    this.invoicesSignal.update(invoices => [optimistic, ...invoices]);
+
     this.api.post<Invoice>('/invoices', invoice).subscribe({
-      next: (newInvoice) => {
-        this.invoicesSignal.update(invoices => [newInvoice, ...invoices]);
+      next: (serverInvoice) => {
+        this.invoicesSignal.update(invoices =>
+          invoices.map(i => i.id === tempId ? serverInvoice : i)
+        );
+      },
+      error: () => {
+        this.invoicesSignal.update(invoices => invoices.filter(i => i.id !== tempId));
       },
     });
   }
 
   updateInvoice(id: number, updatedInvoice: Partial<Invoice>) {
+    const previous = this.invoicesSignal().find(i => i.id === id);
+    this.invoicesSignal.update(invoices =>
+      invoices.map(i => i.id === id ? { ...i, ...updatedInvoice } : i)
+    );
+
     this.api.put<Invoice>(`/invoices/${id}`, updatedInvoice).subscribe({
-      next: (updated) => {
+      next: (serverInvoice) => {
         this.invoicesSignal.update(invoices =>
-          invoices.map(i => i.id === id ? updated : i)
+          invoices.map(i => i.id === id ? serverInvoice : i)
         );
+      },
+      error: () => {
+        if (previous) {
+          this.invoicesSignal.update(invoices =>
+            invoices.map(i => i.id === id ? previous : i)
+          );
+        }
       },
     });
   }
 
   updateInvoiceStatus(id: number, status: Invoice['status']) {
+    const previous = this.invoicesSignal().find(i => i.id === id);
+    this.invoicesSignal.update(invoices =>
+      invoices.map(i => i.id === id ? { ...i, status } : i)
+    );
+
     this.api.patch<Invoice>(`/invoices/${id}/status`, { status }).subscribe({
-      next: (updated) => {
+      next: (serverInvoice) => {
         this.invoicesSignal.update(invoices =>
-          invoices.map(i => i.id === id ? updated : i)
+          invoices.map(i => i.id === id ? serverInvoice : i)
         );
+      },
+      error: () => {
+        if (previous) {
+          this.invoicesSignal.update(invoices =>
+            invoices.map(i => i.id === id ? previous : i)
+          );
+        }
       },
     });
   }
 
   deleteInvoice(id: number) {
+    const previous = this.invoicesSignal();
+    this.invoicesSignal.update(invoices => invoices.filter(i => i.id !== id));
+
     this.api.delete(`/invoices/${id}`).subscribe({
-      next: () => {
-        this.invoicesSignal.update(invoices => invoices.filter(i => i.id !== id));
+      error: () => {
+        this.invoicesSignal.set(previous);
       },
     });
   }

@@ -1,19 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ClientService, Client } from '../../core/services/client.service';
 import { PopupService } from '../../core/services/popup.service';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-client-list',
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   template: `
     <div class="space-y-6">
       <div class="flex justify-between items-center">
         <div>
-          <h2 class="text-3xl font-bold text-white">Clients</h2>
-          <p class="text-gray-400 mt-1">Manage your client relationships</p>
+          <h2 class="text-3xl font-extrabold text-white tracking-tight">Clients</h2>
+          <p class="text-gray-500 mt-1 text-sm">Manage your client relationships</p>
         </div>
-        <button (click)="openAddModal()" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+        <button (click)="openAddModal()" class="btn-primary">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
@@ -21,52 +21,60 @@ import { FormsModule } from '@angular/forms';
         </button>
       </div>
 
-      <div class="bg-gray-800 rounded-xl shadow-lg border border-gray-700 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-700">
-          <thead class="bg-gray-900">
+      <div class="table-container">
+        <table class="min-w-full divide-y divide-gray-800">
+          <thead class="table-header">
             <tr>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Client</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Contact</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status</th>
-              <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Actions</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Client</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Contact</th>
+              <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
+              <th scope="col" class="px-6 py-4 text-right text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
             </tr>
           </thead>
-          <tbody class="bg-gray-800 divide-y divide-gray-700">
+          <tbody class="divide-y divide-gray-800/60">
             @for (client of clientService.clients(); track client.id) {
-              <tr class="hover:bg-gray-750 transition-colors">
+              <tr class="table-row transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
-                    <div class="h-12 w-12 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white font-bold text-lg">
+                    <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-orange-500/20">
                       {{ client.name.charAt(0) }}
                     </div>
                     <div class="ml-4">
-                      <div class="text-sm font-medium text-white">{{ client.name }}</div>
-                      <div class="text-sm text-gray-400">{{ client.company }}</div>
+                      <div class="text-sm font-semibold text-white">{{ client.name }}</div>
+                      <div class="text-xs text-gray-500">{{ client.company }}</div>
                     </div>
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="text-sm text-gray-300">{{ client.email }}</div>
-                  <div class="text-sm text-gray-500">{{ client.phone }}</div>
+                  <div class="text-xs text-gray-500">{{ client.phone }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <span [class]="client.status === 'Active' ? 'px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-500/20 text-green-400 border border-green-500/30' : 'px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-500/20 text-gray-400 border border-gray-500/30'">
+                  <span [class]="client.status === 'Active'
+                    ? 'badge bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30'
+                    : 'badge bg-gray-500/15 text-gray-400 ring-1 ring-gray-500/30'">
                     {{ client.status }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div class="flex gap-2">
-                    <button (click)="openEditModal(client)" class="text-orange-400 hover:text-orange-300" aria-label="Edit client">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                  <div class="flex gap-1 justify-end">
+                    <button (click)="openEditModal(client)" class="p-2 text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 rounded-lg transition-all" aria-label="Edit client">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                     </button>
-                    <button (click)="deleteClient(client.id)" class="text-red-400 hover:text-red-300" aria-label="Delete client">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button (click)="deleteClient(client.id)" class="p-2 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all" aria-label="Delete client">
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                       </svg>
                     </button>
                   </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="px-6 py-16 text-center">
+                  <div class="text-gray-500 text-sm">No clients yet. Click "Add Client" to get started.</div>
                 </td>
               </tr>
             }
@@ -76,40 +84,59 @@ import { FormsModule } from '@angular/forms';
     </div>
 
     <!-- Add/Edit Client Modal -->
-    @if (showModal) {
-      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showModal = false">
-        <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700" (click)="$event.stopPropagation()">
-          <h3 class="text-2xl font-bold text-white mb-6">{{ editingClientId ? 'Edit Client' : 'Add New Client' }}</h3>
-          <form (submit)="saveClient(); $event.preventDefault()" class="space-y-4">
+    @if (showModal()) {
+      <div class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
+        <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full border border-gray-800 shadow-2xl modal-panel" (click)="$event.stopPropagation()">
+          <h3 class="text-xl font-bold text-white mb-6">{{ editingClientId() ? 'Edit Client' : 'Add New Client' }}</h3>
+          <form [formGroup]="form" (ngSubmit)="saveClient()" class="space-y-5">
             <div>
-              <label for="client-name" class="block text-sm font-medium text-gray-300 mb-2">Name</label>
-              <input [(ngModel)]="formClient.name" name="name" id="client-name" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="client-name" class="form-label">Full Name *</label>
+              <input formControlName="name" id="client-name" type="text" class="form-input" placeholder="John Smith">
+              @if (form.get('name')?.touched && form.get('name')?.errors?.['required']) {
+                <p class="field-error">Name is required</p>
+              }
+              @if (form.get('name')?.touched && form.get('name')?.errors?.['minlength']) {
+                <p class="field-error">Name must be at least 2 characters</p>
+              }
             </div>
             <div>
-              <label for="client-company" class="block text-sm font-medium text-gray-300 mb-2">Company</label>
-              <input [(ngModel)]="formClient.company" name="company" id="client-company" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="client-company" class="form-label">Company *</label>
+              <input formControlName="company" id="client-company" type="text" class="form-input" placeholder="Smith & Associates">
+              @if (form.get('company')?.touched && form.get('company')?.errors?.['required']) {
+                <p class="field-error">Company is required</p>
+              }
             </div>
             <div>
-              <label for="client-email" class="block text-sm font-medium text-gray-300 mb-2">Email</label>
-              <input [(ngModel)]="formClient.email" name="email" id="client-email" type="email" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="client-email" class="form-label">Email *</label>
+              <input formControlName="email" id="client-email" type="email" class="form-input" placeholder="john@smith.com">
+              @if (form.get('email')?.touched && form.get('email')?.errors?.['required']) {
+                <p class="field-error">Email is required</p>
+              }
+              @if (form.get('email')?.touched && form.get('email')?.errors?.['email']) {
+                <p class="field-error">Must be a valid email address</p>
+              }
             </div>
             <div>
-              <label for="client-phone" class="block text-sm font-medium text-gray-300 mb-2">Phone</label>
-              <input [(ngModel)]="formClient.phone" name="phone" id="client-phone" type="tel" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="client-phone" class="form-label">Phone *</label>
+              <input formControlName="phone" id="client-phone" type="tel" class="form-input" placeholder="555-123-4567">
+              @if (form.get('phone')?.touched && form.get('phone')?.errors?.['required']) {
+                <p class="field-error">Phone is required</p>
+              }
+              @if (form.get('phone')?.touched && form.get('phone')?.errors?.['pattern']) {
+                <p class="field-error">Enter a valid phone number</p>
+              }
             </div>
             <div>
-              <label for="client-status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select [(ngModel)]="formClient.status" name="status" id="client-status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="client-status" class="form-label">Status</label>
+              <select formControlName="status" id="client-status" class="form-select">
                 <option value="Active">Active</option>
                 <option value="Inactive">Inactive</option>
               </select>
             </div>
-            <div class="flex gap-3 mt-6">
-              <button type="button" (click)="showModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                Cancel
-              </button>
-              <button type="submit" class="flex-1 px-4 py-2 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-                {{ editingClientId ? 'Save Changes' : 'Add Client' }}
+            <div class="flex gap-3 pt-2">
+              <button type="button" (click)="closeModal()" class="btn-secondary flex-1">Cancel</button>
+              <button type="submit" [disabled]="form.invalid" class="btn-primary flex-1">
+                {{ editingClientId() ? 'Save Changes' : 'Add Client' }}
               </button>
             </div>
           </form>
@@ -122,59 +149,61 @@ import { FormsModule } from '@angular/forms';
 })
 export class ClientListComponent {
   private readonly popupService = inject(PopupService);
+  private readonly fb = inject(FormBuilder);
   clientService = inject(ClientService);
-  showModal = false;
-  editingClientId: number | null = null;
-  formClient = {
-    name: '',
-    company: '',
-    email: '',
-    phone: '',
-    status: 'Active' as 'Active' | 'Inactive'
-  };
 
-  private resetForm() {
-    this.formClient = {
-      name: '',
-      company: '',
-      email: '',
-      phone: '',
-      status: 'Active'
-    };
-    this.editingClientId = null;
-  }
+  showModal = signal(false);
+  editingClientId = signal<number | null>(null);
+
+  form = this.fb.nonNullable.group({
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    company: ['', [Validators.required]],
+    email: ['', [Validators.required, Validators.email]],
+    phone: ['', [Validators.required, Validators.pattern(/^[\d\s\-\+\(\)]+$/)]],
+    status: ['Active' as 'Active' | 'Inactive'],
+  });
 
   openAddModal() {
-    this.resetForm();
-    this.showModal = true;
+    this.editingClientId.set(null);
+    this.form.reset({ name: '', company: '', email: '', phone: '', status: 'Active' });
+    this.showModal.set(true);
   }
 
   openEditModal(client: Client) {
-    this.editingClientId = client.id;
-    this.formClient = {
+    this.editingClientId.set(client.id);
+    this.form.patchValue({
       name: client.name,
       company: client.company,
       email: client.email,
       phone: client.phone,
       status: client.status,
-    };
-    this.showModal = true;
+    });
+    this.showModal.set(true);
+  }
+
+  closeModal() {
+    this.showModal.set(false);
   }
 
   saveClient() {
-    if (this.editingClientId) {
-      this.clientService.updateClient(this.editingClientId, this.formClient);
-    } else {
-      this.clientService.addClient(this.formClient);
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
     }
-    this.resetForm();
-    this.showModal = false;
+    const value = this.form.getRawValue();
+    const id = this.editingClientId();
+    if (id) {
+      this.clientService.updateClient(id, value);
+    } else {
+      this.clientService.addClient(value);
+    }
+    this.closeModal();
   }
 
   async deleteClient(id: number) {
     const confirmed = await this.popupService.confirm({
       title: 'Delete Client',
-      message: 'Are you sure you want to delete this client? This action cannot be undone.',
+      message: 'Are you sure? This will also remove related projects and invoices.',
       confirmText: 'Delete',
       cancelText: 'Cancel',
       type: 'danger'
