@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://solosuite.azurewebsites.net/api',
+  apiUrl: 'https://solo-suite-api.onrender.com/api',
 };

@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { InvoiceService } from '../../core/services/invoice.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { InvoiceService, Invoice } from '../../core/services/invoice.service';
+import { ClientService } from '../../core/services/client.service';
 import { PopupService } from '../../core/services/popup.service';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
@@ -14,7 +15,7 @@ import { DecimalPipe } from '@angular/common';
           <h2 class="text-3xl font-bold text-white">Invoices</h2>
           <p class="text-gray-400 mt-1">Manage payments and track revenue</p>
         </div>
-        <button (click)="showAddModal = true" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+        <button (click)="openAddModal()" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
@@ -54,19 +55,26 @@ import { DecimalPipe } from '@angular/common';
                     {{ invoice.status }}
                   </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
-                  @if (invoice.status !== 'Paid') {
-                    <button (click)="markAsPaid(invoice.id)" class="text-green-400 hover:text-green-300">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div class="flex gap-2">
+                    @if (invoice.status !== 'Paid') {
+                      <button (click)="markAsPaid(invoice.id)" class="text-green-400 hover:text-green-300" aria-label="Mark as paid">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </button>
+                    }
+                    <button (click)="openEditModal(invoice)" class="text-orange-400 hover:text-orange-300" aria-label="Edit invoice">
                       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                       </svg>
                     </button>
-                  }
-                  <button (click)="deleteInvoice(invoice.id)" class="text-red-400 hover:text-red-300">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                    </svg>
-                  </button>
+                    <button (click)="deleteInvoice(invoice.id)" class="text-red-400 hover:text-red-300" aria-label="Delete invoice">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
             }
@@ -75,42 +83,47 @@ import { DecimalPipe } from '@angular/common';
       </div>
     </div>
 
-    <!-- Add Invoice Modal -->
-    @if (showAddModal) {
-      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showAddModal = false">
+    <!-- Add/Edit Invoice Modal -->
+    @if (showModal) {
+      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showModal = false">
         <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700" (click)="$event.stopPropagation()">
-          <h3 class="text-2xl font-bold text-white mb-6">Create New Invoice</h3>
-          <form (submit)="addInvoice(); $event.preventDefault()" class="space-y-4">
+          <h3 class="text-2xl font-bold text-white mb-6">{{ editingInvoiceId ? 'Edit Invoice' : 'Create New Invoice' }}</h3>
+          <form (submit)="saveInvoice(); $event.preventDefault()" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Invoice Number</label>
-              <input [(ngModel)]="newInvoice.number" name="number" type="text" required placeholder="INV-004" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="invoice-number" class="block text-sm font-medium text-gray-300 mb-2">Invoice Number</label>
+              <input [(ngModel)]="formInvoice.number" name="number" id="invoice-number" type="text" required placeholder="INV-004" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Client</label>
-              <input [(ngModel)]="newInvoice.client" name="client" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="invoice-client" class="block text-sm font-medium text-gray-300 mb-2">Client</label>
+              <select [(ngModel)]="formInvoice.clientId" name="clientId" id="invoice-client" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+                <option [ngValue]="0" disabled>Select a client</option>
+                @for (client of clientService.clients(); track client.id) {
+                  <option [ngValue]="client.id">{{ client.name }}</option>
+                }
+              </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Date</label>
-              <input [(ngModel)]="newInvoice.date" name="date" type="text" required placeholder="Dec 15, 2025" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="invoice-date" class="block text-sm font-medium text-gray-300 mb-2">Date</label>
+              <input [(ngModel)]="formInvoice.date" name="date" id="invoice-date" type="date" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Amount ($)</label>
-              <input [(ngModel)]="newInvoice.amount" name="amount" type="number" step="0.01" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="invoice-amount" class="block text-sm font-medium text-gray-300 mb-2">Amount ($)</label>
+              <input [(ngModel)]="formInvoice.amount" name="amount" id="invoice-amount" type="number" step="0.01" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select [(ngModel)]="newInvoice.status" name="status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="invoice-status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+              <select [(ngModel)]="formInvoice.status" name="status" id="invoice-status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
                 <option value="Pending">Pending</option>
                 <option value="Paid">Paid</option>
                 <option value="Overdue">Overdue</option>
               </select>
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="button" (click)="showAddModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              <button type="button" (click)="showModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
                 Cancel
               </button>
               <button type="submit" class="flex-1 px-4 py-2 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-                Create Invoice
+                {{ editingInvoiceId ? 'Save Changes' : 'Create Invoice' }}
               </button>
             </div>
           </form>
@@ -124,25 +137,53 @@ import { DecimalPipe } from '@angular/common';
 export class InvoiceListComponent {
   private readonly popupService = inject(PopupService);
   invoiceService = inject(InvoiceService);
-  showAddModal = false;
-  newInvoice = {
+  clientService = inject(ClientService);
+  showModal = false;
+  editingInvoiceId: number | null = null;
+  formInvoice = {
     number: '',
-    client: '',
+    clientId: 0,
     date: '',
     amount: 0,
     status: 'Pending' as 'Paid' | 'Pending' | 'Overdue'
   };
 
-  addInvoice() {
-    this.invoiceService.addInvoice(this.newInvoice);
-    this.newInvoice = {
+  private resetForm() {
+    this.formInvoice = {
       number: '',
-      client: '',
+      clientId: 0,
       date: '',
       amount: 0,
       status: 'Pending'
     };
-    this.showAddModal = false;
+    this.editingInvoiceId = null;
+  }
+
+  openAddModal() {
+    this.resetForm();
+    this.showModal = true;
+  }
+
+  openEditModal(invoice: Invoice) {
+    this.editingInvoiceId = invoice.id;
+    this.formInvoice = {
+      number: invoice.number,
+      clientId: invoice.clientId ?? 0,
+      date: invoice.date,
+      amount: invoice.amount,
+      status: invoice.status,
+    };
+    this.showModal = true;
+  }
+
+  saveInvoice() {
+    if (this.editingInvoiceId) {
+      this.invoiceService.updateInvoice(this.editingInvoiceId, this.formInvoice);
+    } else {
+      this.invoiceService.addInvoice(this.formInvoice as any);
+    }
+    this.resetForm();
+    this.showModal = false;
   }
 
   markAsPaid(id: number) {

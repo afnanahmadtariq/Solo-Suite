@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { ProjectService } from '../../core/services/project.service';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ProjectService, Project } from '../../core/services/project.service';
+import { ClientService } from '../../core/services/client.service';
 import { PopupService } from '../../core/services/popup.service';
 import { FormsModule } from '@angular/forms';
 
@@ -13,7 +14,7 @@ import { FormsModule } from '@angular/forms';
           <h2 class="text-3xl font-bold text-white">Projects</h2>
           <p class="text-gray-400 mt-1">Manage and track your active projects</p>
         </div>
-        <button (click)="showAddModal = true" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+        <button (click)="openAddModal()" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
           </svg>
@@ -53,49 +54,67 @@ import { FormsModule } from '@angular/forms';
                 </svg>
                 <span>{{ project.dueDate }}</span>
               </div>
-              <button (click)="deleteProject(project.id)" class="text-red-400 hover:text-red-300">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                </svg>
-              </button>
+              <div class="flex gap-2">
+                <button (click)="openEditModal(project)" class="text-orange-400 hover:text-orange-300" aria-label="Edit project">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                  </svg>
+                </button>
+                <button (click)="deleteProject(project.id)" class="text-red-400 hover:text-red-300" aria-label="Delete project">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         }
       </div>
     </div>
 
-    <!-- Add Project Modal -->
-    @if (showAddModal) {
-      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showAddModal = false">
+    <!-- Add/Edit Project Modal -->
+    @if (showModal) {
+      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showModal = false">
         <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700" (click)="$event.stopPropagation()">
-          <h3 class="text-2xl font-bold text-white mb-6">Add New Project</h3>
-          <form (submit)="addProject(); $event.preventDefault()" class="space-y-4">
+          <h3 class="text-2xl font-bold text-white mb-6">{{ editingProjectId ? 'Edit Project' : 'Add New Project' }}</h3>
+          <form (submit)="saveProject(); $event.preventDefault()" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Project Name</label>
-              <input [(ngModel)]="newProject.name" name="name" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-name" class="block text-sm font-medium text-gray-300 mb-2">Project Name</label>
+              <input [(ngModel)]="formProject.name" name="name" id="project-name" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Client</label>
-              <input [(ngModel)]="newProject.client" name="client" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-client" class="block text-sm font-medium text-gray-300 mb-2">Client</label>
+              <select [(ngModel)]="formProject.clientId" name="clientId" id="project-client" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+                <option [ngValue]="0" disabled>Select a client</option>
+                @for (client of clientService.clients(); track client.id) {
+                  <option [ngValue]="client.id">{{ client.name }}</option>
+                }
+              </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
-              <input [(ngModel)]="newProject.dueDate" name="dueDate" type="text" required placeholder="e.g., Dec 20" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-dueDate" class="block text-sm font-medium text-gray-300 mb-2">Due Date</label>
+              <input [(ngModel)]="formProject.dueDate" name="dueDate" id="project-dueDate" type="date" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Status</label>
-              <select [(ngModel)]="newProject.status" name="status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="project-status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+              <select [(ngModel)]="formProject.status" name="status" id="project-status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
                 <option value="Planning">Planning</option>
                 <option value="In Progress">In Progress</option>
                 <option value="Completed">Completed</option>
               </select>
             </div>
+            @if (editingProjectId) {
+              <div>
+                <label for="project-progress" class="block text-sm font-medium text-gray-300 mb-2">Progress ({{ formProject.progress }}%)</label>
+                <input [(ngModel)]="formProject.progress" name="progress" id="project-progress" type="range" min="0" max="100" step="5" class="w-full accent-orange-500">
+              </div>
+            }
             <div class="flex gap-3 mt-6">
-              <button type="button" (click)="showAddModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              <button type="button" (click)="showModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
                 Cancel
               </button>
               <button type="submit" class="flex-1 px-4 py-2 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-                Add Project
+                {{ editingProjectId ? 'Save Changes' : 'Add Project' }}
               </button>
             </div>
           </form>
@@ -109,25 +128,53 @@ import { FormsModule } from '@angular/forms';
 export class ProjectListComponent {
   private readonly popupService = inject(PopupService);
   projectService = inject(ProjectService);
-  showAddModal = false;
-  newProject = {
+  clientService = inject(ClientService);
+  showModal = false;
+  editingProjectId: number | null = null;
+  formProject = {
     name: '',
-    client: '',
+    clientId: 0,
     status: 'Planning' as 'Planning' | 'In Progress' | 'Completed',
     progress: 0,
     dueDate: ''
   };
 
-  addProject() {
-    this.projectService.addProject(this.newProject);
-    this.newProject = {
+  private resetForm() {
+    this.formProject = {
       name: '',
-      client: '',
+      clientId: 0,
       status: 'Planning',
       progress: 0,
       dueDate: ''
     };
-    this.showAddModal = false;
+    this.editingProjectId = null;
+  }
+
+  openAddModal() {
+    this.resetForm();
+    this.showModal = true;
+  }
+
+  openEditModal(project: Project) {
+    this.editingProjectId = project.id;
+    this.formProject = {
+      name: project.name,
+      clientId: project.clientId ?? 0,
+      status: project.status,
+      progress: project.progress,
+      dueDate: project.dueDate,
+    };
+    this.showModal = true;
+  }
+
+  saveProject() {
+    if (this.editingProjectId) {
+      this.projectService.updateProject(this.editingProjectId, this.formProject);
+    } else {
+      this.projectService.addProject(this.formProject as any);
+    }
+    this.resetForm();
+    this.showModal = false;
   }
 
   async deleteProject(id: number) {

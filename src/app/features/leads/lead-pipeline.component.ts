@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { LeadService, Lead } from '../../core/services/lead.service';
+import { PopupService } from '../../core/services/popup.service';
 import { FormsModule } from '@angular/forms';
 import { DecimalPipe } from '@angular/common';
 
@@ -39,7 +40,7 @@ import { DecimalPipe } from '@angular/common';
               Table
             </button>
           </div>
-          <button (click)="showAddModal = true" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
+          <button (click)="openAddModal()" class="bg-orange-500 text-black font-semibold px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
@@ -69,7 +70,15 @@ import { DecimalPipe } from '@angular/common';
                     <p class="text-sm text-gray-400 mt-1">{{ lead.company }}</p>
                     <div class="mt-3 flex justify-between items-center">
                       <span class="text-sm font-semibold text-orange-500">\${{ lead.value | number }}</span>
-                      <button (click)="updateStatus(lead.id, 'Contacted')" class="text-xs text-gray-400 hover:text-orange-500">Move →</button>
+                      <div class="flex items-center gap-2">
+                        <button (click)="openEditModal(lead)" class="text-xs text-gray-400 hover:text-orange-500" aria-label="Edit lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <button (click)="deleteLead(lead.id)" class="text-xs text-gray-400 hover:text-red-400" aria-label="Delete lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <button (click)="updateStatus(lead.id, 'Contacted')" class="text-xs text-gray-400 hover:text-orange-500">Move →</button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -93,7 +102,15 @@ import { DecimalPipe } from '@angular/common';
                     <p class="text-sm text-gray-400 mt-1">{{ lead.company }}</p>
                     <div class="mt-3 flex justify-between items-center">
                       <span class="text-sm font-semibold text-orange-500">\${{ lead.value | number }}</span>
-                      <button (click)="updateStatus(lead.id, 'Proposal Sent')" class="text-xs text-gray-400 hover:text-orange-500">Move →</button>
+                      <div class="flex items-center gap-2">
+                        <button (click)="openEditModal(lead)" class="text-xs text-gray-400 hover:text-orange-500" aria-label="Edit lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <button (click)="deleteLead(lead.id)" class="text-xs text-gray-400 hover:text-red-400" aria-label="Delete lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <button (click)="updateStatus(lead.id, 'Proposal Sent')" class="text-xs text-gray-400 hover:text-orange-500">Move →</button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -117,7 +134,15 @@ import { DecimalPipe } from '@angular/common';
                     <p class="text-sm text-gray-400 mt-1">{{ lead.company }}</p>
                     <div class="mt-3 flex justify-between items-center">
                       <span class="text-sm font-semibold text-orange-500">\${{ lead.value | number }}</span>
-                      <button (click)="updateStatus(lead.id, 'Won')" class="text-xs text-gray-400 hover:text-orange-500">Move →</button>
+                      <div class="flex items-center gap-2">
+                        <button (click)="openEditModal(lead)" class="text-xs text-gray-400 hover:text-orange-500" aria-label="Edit lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <button (click)="deleteLead(lead.id)" class="text-xs text-gray-400 hover:text-red-400" aria-label="Delete lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                        <button (click)="updateStatus(lead.id, 'Won')" class="text-xs text-gray-400 hover:text-orange-500">Move →</button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -139,8 +164,16 @@ import { DecimalPipe } from '@angular/common';
                     </div>
                     <h4 class="font-medium text-white">{{ lead.title }}</h4>
                     <p class="text-sm text-gray-400 mt-1">{{ lead.company }}</p>
-                    <div class="mt-3">
+                    <div class="mt-3 flex justify-between items-center">
                       <span class="text-sm font-semibold text-green-400">\${{ lead.value | number }}</span>
+                      <div class="flex items-center gap-2">
+                        <button (click)="openEditModal(lead)" class="text-xs text-gray-400 hover:text-orange-500" aria-label="Edit lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </button>
+                        <button (click)="deleteLead(lead.id)" class="text-xs text-gray-400 hover:text-red-400" aria-label="Delete lead">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 }
@@ -202,16 +235,24 @@ import { DecimalPipe } from '@angular/common';
                       {{ lead.date }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm">
-                      @if (lead.status !== 'Won') {
-                        <button 
-                          (click)="updateStatus(lead.id, getNextStatus(lead.status))" 
-                          class="text-orange-500 hover:text-orange-400 font-medium"
-                        >
-                          Move to {{ getNextStatus(lead.status) }}
+                      <div class="flex items-center gap-3">
+                        @if (lead.status !== 'Won') {
+                          <button 
+                            (click)="updateStatus(lead.id, getNextStatus(lead.status))" 
+                            class="text-orange-500 hover:text-orange-400 font-medium"
+                          >
+                            Move to {{ getNextStatus(lead.status) }}
+                          </button>
+                        } @else {
+                          <span class="text-green-400 font-medium">✓ Won</span>
+                        }
+                        <button (click)="openEditModal(lead)" class="text-orange-400 hover:text-orange-300" aria-label="Edit lead">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         </button>
-                      } @else {
-                        <span class="text-green-400 font-medium">✓ Won</span>
-                      }
+                        <button (click)="deleteLead(lead.id)" class="text-red-400 hover:text-red-300" aria-label="Delete lead">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 } @empty {
@@ -228,34 +269,64 @@ import { DecimalPipe } from '@angular/common';
       }
     </div>
 
-    <!-- Add Lead Modal -->
-    @if (showAddModal) {
-      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showAddModal = false">
+    <!-- Add/Edit Lead Modal -->
+    @if (showModal) {
+      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" (click)="showModal = false">
         <div class="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700" (click)="$event.stopPropagation()">
-          <h3 class="text-2xl font-bold text-white mb-6">Add New Lead</h3>
-          <form (submit)="addLead(); $event.preventDefault()" class="space-y-4">
+          <h3 class="text-2xl font-bold text-white mb-6">{{ editingLeadId ? 'Edit Lead' : 'Add New Lead' }}</h3>
+          <form (submit)="saveLead(); $event.preventDefault()" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Title</label>
-              <input [(ngModel)]="newLead.title" name="title" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="lead-title" class="block text-sm font-medium text-gray-300 mb-2">Title</label>
+              <input [(ngModel)]="formLead.title" name="title" id="lead-title" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Company</label>
-              <input [(ngModel)]="newLead.company" name="company" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              <label for="lead-company" class="block text-sm font-medium text-gray-300 mb-2">Company</label>
+              <input [(ngModel)]="formLead.company" name="company" id="lead-company" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Value ($)</label>
-              <input [(ngModel)]="newLead.value" name="value" type="number" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="lead-name" class="block text-sm font-medium text-gray-300 mb-2">Contact Name</label>
+                <input [(ngModel)]="formLead.name" name="name" id="lead-name" type="text" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              </div>
+              <div>
+                <label for="lead-email" class="block text-sm font-medium text-gray-300 mb-2">Contact Email</label>
+                <input [(ngModel)]="formLead.email" name="email" id="lead-email" type="email" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              </div>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-300 mb-2">Type</label>
-              <input [(ngModel)]="newLead.type" name="type" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="lead-phone" class="block text-sm font-medium text-gray-300 mb-2">Contact Phone</label>
+                <input [(ngModel)]="formLead.phone" name="phone" id="lead-phone" type="tel" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              </div>
+              <div>
+                <label for="lead-value" class="block text-sm font-medium text-gray-300 mb-2">Value ($)</label>
+                <input [(ngModel)]="formLead.value" name="value" id="lead-value" type="number" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="lead-type" class="block text-sm font-medium text-gray-300 mb-2">Type</label>
+                <input [(ngModel)]="formLead.type" name="type" id="lead-type" type="text" required class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+              </div>
+              @if (editingLeadId) {
+                <div>
+                  <label for="lead-status" class="block text-sm font-medium text-gray-300 mb-2">Status</label>
+                  <select [(ngModel)]="formLead.status" name="status" id="lead-status" class="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-orange-500">
+                    <option value="New">New</option>
+                    <option value="Contacted">Contacted</option>
+                    <option value="Proposal Sent">Proposal Sent</option>
+                    <option value="Won">Won</option>
+                    <option value="Lost">Lost</option>
+                  </select>
+                </div>
+              }
             </div>
             <div class="flex gap-3 mt-6">
-              <button type="button" (click)="showAddModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
+              <button type="button" (click)="showModal = false" class="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors">
                 Cancel
               </button>
               <button type="submit" class="flex-1 px-4 py-2 bg-orange-500 text-black font-semibold rounded-lg hover:bg-orange-600 transition-colors">
-                Add Lead
+                {{ editingLeadId ? 'Save Changes' : 'Add Lead' }}
               </button>
             </div>
           </form>
@@ -267,31 +338,81 @@ import { DecimalPipe } from '@angular/common';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LeadPipelineComponent {
+  private readonly popupService = inject(PopupService);
   leadService = inject(LeadService);
-  showAddModal = false;
+  showModal = false;
   viewMode = signal<'pipeline' | 'table'>('pipeline');
-  newLead = {
+  editingLeadId: number | null = null;
+  formLead = {
     title: '',
     company: '',
+    name: '',
+    email: '',
+    phone: '',
     value: 0,
     type: '',
     status: 'New' as Lead['status']
   };
 
-  addLead() {
-    this.leadService.addLead(this.newLead);
-    this.newLead = {
+  private resetForm() {
+    this.formLead = {
       title: '',
       company: '',
+      name: '',
+      email: '',
+      phone: '',
       value: 0,
       type: '',
       status: 'New'
     };
-    this.showAddModal = false;
+    this.editingLeadId = null;
+  }
+
+  openAddModal() {
+    this.resetForm();
+    this.showModal = true;
+  }
+
+  openEditModal(lead: Lead) {
+    this.editingLeadId = lead.id;
+    this.formLead = {
+      title: lead.title,
+      company: lead.company,
+      name: (lead as any).name ?? '',
+      email: (lead as any).email ?? '',
+      phone: (lead as any).phone ?? '',
+      value: lead.value,
+      type: lead.type,
+      status: lead.status,
+    };
+    this.showModal = true;
+  }
+
+  saveLead() {
+    if (this.editingLeadId) {
+      this.leadService.updateLead(this.editingLeadId, this.formLead);
+    } else {
+      this.leadService.addLead(this.formLead);
+    }
+    this.resetForm();
+    this.showModal = false;
   }
 
   updateStatus(id: number, status: Lead['status']) {
     this.leadService.updateLeadStatus(id, status);
+  }
+
+  async deleteLead(id: number) {
+    const confirmed = await this.popupService.confirm({
+      title: 'Delete Lead',
+      message: 'Are you sure you want to delete this lead? This action cannot be undone.',
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      type: 'danger'
+    });
+    if (confirmed) {
+      this.leadService.deleteLead(id);
+    }
   }
 
   getNextStatus(currentStatus: Lead['status']): Lead['status'] {

@@ -45,10 +45,20 @@ export class LeadService {
     });
   }
 
+  updateLead(id: number, updatedLead: Partial<Lead>) {
+    this.api.put<Lead>(`/leads/${id}`, updatedLead).subscribe({
+      next: (updated) => {
+        this.leadsSignal.update(leads =>
+          leads.map(l => l.id === id ? updated : l)
+        );
+      },
+    });
+  }
+
   updateLeadStatus(id: number, status: Lead['status']) {
     this.api.patch<Lead>(`/leads/${id}/status`, { status }).subscribe({
       next: (updated) => {
-        this.leadsSignal.update(leads => 
+        this.leadsSignal.update(leads =>
           leads.map(l => l.id === id ? updated : l)
         );
       },

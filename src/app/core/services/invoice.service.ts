@@ -21,19 +21,19 @@ export class InvoiceService {
 
   readonly invoices = this.invoicesSignal.asReadonly();
 
-  readonly totalRevenue = computed(() => 
+  readonly totalRevenue = computed(() =>
     this.invoicesSignal()
       .filter(i => i.status === 'Paid')
       .reduce((sum, i) => sum + i.amount, 0)
   );
 
-  readonly pendingAmount = computed(() => 
+  readonly pendingAmount = computed(() =>
     this.invoicesSignal()
       .filter(i => i.status === 'Pending' || i.status === 'Overdue')
       .reduce((sum, i) => sum + i.amount, 0)
   );
 
-  readonly overdueCount = computed(() => 
+  readonly overdueCount = computed(() =>
     this.invoicesSignal().filter(i => i.status === 'Overdue').length
   );
 
@@ -56,10 +56,20 @@ export class InvoiceService {
     });
   }
 
+  updateInvoice(id: number, updatedInvoice: Partial<Invoice>) {
+    this.api.put<Invoice>(`/invoices/${id}`, updatedInvoice).subscribe({
+      next: (updated) => {
+        this.invoicesSignal.update(invoices =>
+          invoices.map(i => i.id === id ? updated : i)
+        );
+      },
+    });
+  }
+
   updateInvoiceStatus(id: number, status: Invoice['status']) {
     this.api.patch<Invoice>(`/invoices/${id}/status`, { status }).subscribe({
       next: (updated) => {
-        this.invoicesSignal.update(invoices => 
+        this.invoicesSignal.update(invoices =>
           invoices.map(i => i.id === id ? updated : i)
         );
       },
