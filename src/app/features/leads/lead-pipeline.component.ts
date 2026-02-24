@@ -9,35 +9,35 @@ import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
   selector: 'app-lead-pipeline',
   imports: [ReactiveFormsModule, DecimalPipe, DragDropModule],
   template: `
-    <div class="space-y-6 h-full flex flex-col">
-      <div class="flex justify-between items-center">
+    <div class="space-y-4 sm:space-y-6 h-full flex flex-col">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h2 class="text-3xl font-extrabold text-heading tracking-tight">Leads Pipeline</h2>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-heading tracking-tight">Leads Pipeline</h2>
           <p class="text-subtle mt-1 text-sm">Track your opportunities from prospect to close</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <div class="flex bg-inset rounded-lg p-1 border border-theme">
             <button (click)="viewMode.set('pipeline')" [class]="viewMode() === 'pipeline' ? 'bg-orange-500 text-black shadow-md' : 'text-muted hover:text-heading active:text-orange-500'" class="px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5" aria-label="Pipeline view">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
-              Pipeline
+              <span class="hidden sm:inline">Pipeline</span>
             </button>
             <button (click)="viewMode.set('table')" [class]="viewMode() === 'table' ? 'bg-orange-500 text-black shadow-md' : 'text-muted hover:text-heading active:text-orange-500'" class="px-3 py-1.5 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5" aria-label="Table view">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-              Table
+              <span class="hidden sm:inline">Table</span>
             </button>
           </div>
-          <button (click)="openAddModal()" class="btn-primary">
+          <button (click)="openAddModal()" class="btn-primary text-sm sm:text-base">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-            Add Lead
+            <span class="hidden sm:inline">Add Lead</span>
           </button>
         </div>
       </div>
 
       @if (viewMode() === 'pipeline') {
         <div class="flex-1 overflow-x-auto pb-2">
-          <div class="flex gap-5 h-full" cdkDropListGroup>
+          <div class="flex gap-3 sm:gap-5 h-full" cdkDropListGroup>
             @for (col of columns; track col.key) {
-              <div class="flex-1 min-w-[250px] card p-4 flex flex-col">
+              <div class="flex-1 min-w-[220px] sm:min-w-[250px] card p-3 sm:p-4 flex flex-col">
                 <div class="flex justify-between items-center mb-4">
                   <h3 class="font-semibold text-heading text-sm">{{ col.title }}</h3>
                   <span [class]="col.badgeClass">{{ getLeadsByStatus(col.key).length }}</span>
@@ -63,7 +63,7 @@ import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
                       <p class="text-xs text-subtle mt-0.5">{{ lead.company }}</p>
                       <div class="mt-3 flex justify-between items-center">
                         <span class="text-sm font-bold" [class]="col.key === 'Won' ? 'text-emerald-500' : 'text-orange-500'">\${{ lead.value | number }}</span>
-                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div class="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                           <button (click)="openEditModal(lead)" class="p-1 text-subtle hover:text-orange-400 active:text-orange-500 rounded" aria-label="Edit"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                           <button (click)="deleteLead(lead.id)" class="p-1 text-subtle hover:text-red-400 active:text-red-500 rounded" aria-label="Delete"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                           @if (col.nextStatus) {
@@ -82,7 +82,8 @@ import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
           </div>
         </div>
       } @else {
-        <div class="flex-1 overflow-auto scrollbar-hidden">
+        <!-- Desktop Table -->
+        <div class="flex-1 overflow-auto scrollbar-hidden hidden md:block">
           <div class="table-container">
             <table class="min-w-full divide-y divide-theme">
               <thead class="table-header">
@@ -128,12 +129,44 @@ import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
             </table>
           </div>
         </div>
+        <!-- Mobile Card View -->
+        <div class="flex-1 overflow-auto scrollbar-hidden md:hidden space-y-3">
+          @for (lead of leadService.leads(); track lead.id) {
+            <div class="card p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-3">
+                  <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-xs shadow-md shadow-orange-500/20">{{ lead.title.charAt(0) }}</div>
+                  <div>
+                    <div class="text-sm font-semibold text-heading">{{ lead.title }}</div>
+                    <div class="text-xs text-subtle">{{ lead.company }}</div>
+                  </div>
+                </div>
+                <span [class]="getStatusClass(lead.status)">{{ lead.status }}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <span class="text-sm font-bold text-orange-500">\${{ lead.value | number }}</span>
+                  <span class="badge bg-sky-500/15 text-sky-500 ring-1 ring-sky-500/30">{{ lead.type }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  @if (lead.status !== 'Won') {
+                    <button (click)="updateStatus(lead.id, getNextStatus(lead.status))" class="text-[10px] font-semibold text-orange-500 px-2 py-1 bg-orange-500/10 rounded transition-all">→ {{ getNextStatus(lead.status) }}</button>
+                  }
+                  <button (click)="openEditModal(lead)" class="p-1.5 text-muted hover:text-orange-400 rounded-lg transition-all" aria-label="Edit"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                  <button (click)="deleteLead(lead.id)" class="p-1.5 text-muted hover:text-red-400 rounded-lg transition-all" aria-label="Delete"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="py-16 text-center text-subtle text-sm">No leads yet. Click "Add Lead" to get started.</div>
+          }
+        </div>
       }
     </div>
 
     @if (showModal()) {
-      <div class="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
-        <div class="rounded-xl p-8 max-w-lg w-full border border-theme shadow-2xl modal-panel" style="background:var(--modal-bg)" (click)="$event.stopPropagation()">
+      <div class="fixed inset-0 bg-overlay backdrop-blur-sm flex items-end sm:items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
+        <div class="rounded-t-xl sm:rounded-xl p-5 sm:p-8 max-w-lg w-full border border-theme shadow-2xl modal-panel max-h-[90vh] overflow-y-auto" style="background:var(--modal-bg)" (click)="$event.stopPropagation()">
           <h3 class="text-xl font-bold text-heading mb-6">{{ editingLeadId() ? 'Edit Lead' : 'Add New Lead' }}</h3>
           <form [formGroup]="form" (ngSubmit)="saveLead()" class="space-y-5">
             <div>
@@ -146,7 +179,7 @@ import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
               <input formControlName="company" id="lead-company" type="text" class="form-input" placeholder="Tech Startup LLC">
               @if (form.get('company')?.touched && form.get('company')?.errors?.['required']) { <p class="field-error">Company is required</p> }
             </div>
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><label for="lead-name" class="form-label">Contact</label><input formControlName="name" id="lead-name" type="text" class="form-input" placeholder="Alice"></div>
               <div>
                 <label for="lead-email" class="form-label">Email</label><input formControlName="email" id="lead-email" type="email" class="form-input" placeholder="alice@co.com">
@@ -154,7 +187,7 @@ import { DragDropModule, CdkDragDrop } from '@angular/cdk/drag-drop';
               </div>
               <div><label for="lead-phone" class="form-label">Phone</label><input formControlName="phone" id="lead-phone" type="tel" class="form-input" placeholder="555-987"></div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label for="lead-value" class="form-label">Value ($) *</label>
                 <input formControlName="value" id="lead-value" type="number" class="form-input" placeholder="5000">

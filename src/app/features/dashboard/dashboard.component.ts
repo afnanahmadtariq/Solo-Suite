@@ -9,19 +9,19 @@ import { DecimalPipe } from '@angular/common';
   selector: 'app-dashboard',
   imports: [DecimalPipe],
   template: `
-    <div class="space-y-6">
+    <div class="space-y-4 sm:space-y-6">
       <div>
-        <h2 class="text-3xl font-extrabold text-heading tracking-tight">Dashboard</h2>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-heading tracking-tight">Dashboard</h2>
         <p class="text-subtle mt-1 text-sm">Welcome back! Here's what's happening today.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         <!-- Revenue -->
-        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 p-6 shadow-lg shadow-orange-500/20">
+        <div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 p-4 sm:p-6 shadow-lg shadow-orange-500/20">
           <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-8 translate-x-8"></div>
           <div class="relative">
             <p class="text-orange-100 text-xs font-semibold uppercase tracking-wider">Total Revenue</p>
-            <p class="text-3xl font-extrabold text-white mt-2">\${{ totalRevenue() | number: '1.0-0' }}</p>
+            <p class="text-2xl sm:text-3xl font-extrabold text-white mt-2">\${{ totalRevenue() | number: '1.0-0' }}</p>
             <p class="text-orange-100/70 text-xs mt-1">All time earnings</p>
           </div>
         </div>

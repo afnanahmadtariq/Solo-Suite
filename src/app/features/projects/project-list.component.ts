@@ -8,13 +8,13 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
   selector: 'app-project-list',
   imports: [ReactiveFormsModule],
   template: `
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
+    <div class="space-y-4 sm:space-y-6">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h2 class="text-3xl font-extrabold text-heading tracking-tight">Projects</h2>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-heading tracking-tight">Projects</h2>
           <p class="text-subtle mt-1 text-sm">Manage and track your active projects</p>
         </div>
-        <button (click)="openAddModal()" class="btn-primary">
+        <button (click)="openAddModal()" class="btn-primary self-start sm:self-auto">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
           New Project
         </button>
@@ -43,7 +43,7 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                 <span>{{ project.dueDate }}</span>
               </div>
-              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div class="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 <button (click)="openEditModal(project)" class="p-1.5 text-muted hover:text-orange-400 active:text-orange-500 hover:bg-orange-500/10 active:bg-orange-500/20 active:scale-95 rounded-md transition-all" aria-label="Edit project"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
                 <button (click)="deleteProject(project.id)" class="p-1.5 text-muted hover:text-red-400 active:text-red-500 hover:bg-red-500/10 active:bg-red-500/20 active:scale-95 rounded-md transition-all" aria-label="Delete project"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
               </div>
@@ -56,8 +56,8 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
     </div>
 
     @if (showModal()) {
-      <div class="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
-        <div class="rounded-xl p-8 max-w-md w-full border border-theme shadow-2xl modal-panel" style="background:var(--modal-bg)" (click)="$event.stopPropagation()">
+      <div class="fixed inset-0 bg-overlay backdrop-blur-sm flex items-end sm:items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
+        <div class="rounded-t-xl sm:rounded-xl p-5 sm:p-8 max-w-md w-full border border-theme shadow-2xl modal-panel max-h-[90vh] overflow-y-auto" style="background:var(--modal-bg)" (click)="$event.stopPropagation()">
           <h3 class="text-xl font-bold text-heading mb-6">{{ editingProjectId() ? 'Edit Project' : 'Add New Project' }}</h3>
           <form [formGroup]="form" (ngSubmit)="saveProject()" class="space-y-5">
             <div>

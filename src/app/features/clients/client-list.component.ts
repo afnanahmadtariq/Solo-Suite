@@ -7,19 +7,20 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
   selector: 'app-client-list',
   imports: [ReactiveFormsModule],
   template: `
-    <div class="space-y-6">
-      <div class="flex justify-between items-center">
+    <div class="space-y-4 sm:space-y-6">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
-          <h2 class="text-3xl font-extrabold text-heading tracking-tight">Clients</h2>
+          <h2 class="text-2xl sm:text-3xl font-extrabold text-heading tracking-tight">Clients</h2>
           <p class="text-subtle mt-1 text-sm">Manage your client relationships</p>
         </div>
-        <button (click)="openAddModal()" class="btn-primary">
+        <button (click)="openAddModal()" class="btn-primary self-start sm:self-auto">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
           Add Client
         </button>
       </div>
 
-      <div class="table-container">
+      <!-- Desktop Table -->
+      <div class="table-container hidden md:block">
         <table class="min-w-full divide-y divide-theme">
           <thead class="table-header">
             <tr>
@@ -61,11 +62,40 @@ import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
           </tbody>
         </table>
       </div>
+      <!-- Mobile Card View -->
+      <div class="md:hidden space-y-3">
+        @for (client of clientService.clients(); track client.id) {
+          <div class="card p-4">
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-orange-500/20">{{ client.name.charAt(0) }}</div>
+                <div>
+                  <div class="text-sm font-semibold text-heading">{{ client.name }}</div>
+                  <div class="text-xs text-subtle">{{ client.company }}</div>
+                </div>
+              </div>
+              <span [class]="client.status === 'Active' ? 'badge bg-emerald-500/15 text-emerald-500 ring-1 ring-emerald-500/30' : 'badge bg-gray-500/15 text-muted ring-1 ring-gray-500/30'">{{ client.status }}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <div class="min-w-0">
+                <div class="text-body truncate">{{ client.email }}</div>
+                <div class="text-xs text-subtle">{{ client.phone }}</div>
+              </div>
+              <div class="flex gap-1 flex-shrink-0">
+                <button (click)="openEditModal(client)" class="p-2 text-muted hover:text-orange-400 rounded-lg transition-all" aria-label="Edit client"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                <button (click)="deleteClient(client.id)" class="p-2 text-muted hover:text-red-400 rounded-lg transition-all" aria-label="Delete client"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+              </div>
+            </div>
+          </div>
+        } @empty {
+          <div class="py-16 text-center text-subtle text-sm">No clients yet. Click "Add Client" to get started.</div>
+        }
+      </div>
     </div>
 
     @if (showModal()) {
-      <div class="fixed inset-0 bg-overlay backdrop-blur-sm flex items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
-        <div class="bg-surface rounded-xl p-8 max-w-md w-full border border-theme shadow-2xl modal-panel" style="background:var(--modal-bg)" (click)="$event.stopPropagation()">
+      <div class="fixed inset-0 bg-overlay backdrop-blur-sm flex items-end sm:items-center justify-center z-50 modal-backdrop" (click)="closeModal()">
+        <div class="bg-surface rounded-t-xl sm:rounded-xl p-5 sm:p-8 max-w-md w-full border border-theme shadow-2xl modal-panel max-h-[90vh] overflow-y-auto" style="background:var(--modal-bg)" (click)="$event.stopPropagation()">
           <h3 class="text-xl font-bold text-heading mb-6">{{ editingClientId() ? 'Edit Client' : 'Add New Client' }}</h3>
           <form [formGroup]="form" (ngSubmit)="saveClient()" class="space-y-5">
             <div>
